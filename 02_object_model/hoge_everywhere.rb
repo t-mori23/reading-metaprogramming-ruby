@@ -6,3 +6,11 @@
 # - Class
 # - Hash
 # - TrueClass
+
+# frozen_string_literal: true
+
+class Object
+  def hoge
+    "hoge"
+  end
+end
