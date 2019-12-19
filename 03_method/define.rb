@@ -19,13 +19,9 @@ class A2
     method_suffixes.each do |method_suffix|
       method_name = "hoge_#{method_suffix}"
       self.class.send(:define_method, method_name) do |*args|
-        if args[0].nil?
-          dev_team
-        else
-          result = ''
-          args.sum.times { result += method_name }
-          result
-        end
+        return dev_team if args[0].nil?
+
+        method_name * args.sum
       end
     end
   end
