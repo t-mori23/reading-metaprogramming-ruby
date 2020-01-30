@@ -22,3 +22,34 @@
 # 4. クラスメソッドsettingは、引数を2つ取り、1つ目がキー名、2つ目が設定する値です
 #     1. settingメソッドに渡された値は、インスタンスメソッド `settings` から返されるオブジェクトに、メソッド名としてアクセスすることで取り出すことができます
 #     2. e.g. クラスメソッドで `setting :name, 'bot'` と実行した場合は、インスタンス内で `settings.name` の戻り値は `bot` の文字列になります
+
+class SimpleBot
+  @@blocks = {}
+  @@results = {}
+
+  def self.respond(keyword, &block)
+    @@blocks[keyword] = block
+  end
+
+  def self.setting(keyword, value)
+    @@results[keyword] = value
+
+    define_singleton_method :settings do
+      obj = Object.new
+
+      @@results.each do |keyword, value|
+        obj.define_singleton_method(keyword) { value }
+      end
+
+      obj
+    end
+  end
+
+  def ask(keyword)
+    if @@blocks.key?(keyword)
+      @@blocks[keyword].call
+    else
+      nil
+    end
+  end
+end
