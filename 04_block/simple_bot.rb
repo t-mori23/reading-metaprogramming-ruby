@@ -24,30 +24,47 @@
 #     2. e.g. クラス内で `setting :name, 'bot'` と実行した場合は、respondメソッドに渡されるブロックのスコープ内で `settings.name` の戻り値は `bot` の文字列になります
 
 class SimpleBot
-  @@blocks = {}
-  @@results = {}
+  class << self
+    def respond(keyword, &block)
+      blocks = instance_variable_get(:@blocks)
 
-  def self.respond(keyword, &block)
-    @@blocks[keyword] = block
-  end
-
-  def self.setting(keyword, value)
-    @@results[keyword] = value
-
-    define_singleton_method :settings do
-      obj = Object.new
-
-      @@results.each do |keyword, value|
-        obj.define_singleton_method(keyword) { value }
+      if blocks.nil?
+        blocks = { keyword => block }
+        instance_variable_set(:@blocks, blocks)
+      else
+        blocks[keyword] = block
       end
 
-      obj
+      instance_variable_set(:@blocks, blocks)
+    end
+
+    def setting(keyword, value)
+      results = instance_variable_get(:@blocks)
+
+      if results.nil?
+        results = { keyword => value }
+        instance_variable_set(:@results, results)
+      else
+        results[keyword] = block
+      end
+
+      instance_variable_set(:@results, results)
+
+      define_singleton_method :settings do
+        obj = Object.new
+
+        instance_variable_get(:@results).each do |keyword, value|
+          obj.define_singleton_method(keyword) { value }
+        end
+
+        obj
+      end
     end
   end
 
   def ask(keyword)
-    if @@blocks.key?(keyword)
-      @@blocks[keyword].call
+    if self.class.instance_variable_get(:@blocks)&.key?(keyword)
+      self.class.instance_variable_get(:@blocks)[keyword].call
     else
       nil
     end
